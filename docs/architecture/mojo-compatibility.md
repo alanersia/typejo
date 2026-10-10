@@ -1,6 +1,6 @@
 # Mojo compatibility notes
 
-**Support baseline:** local `mojo --version` reported Mojo 1.1.0. v0.1 is verified with that compiler; recheck compiler-sensitive details before release.
+**Support baseline:** local `mojo --version` reported Mojo 1.1.0. v0.1 and v0.2 are verified with that compiler; recheck compiler-sensitive details before release.
 
 ## Verified language facts
 
@@ -16,7 +16,7 @@
 
 ## Unverified or unsupported assumptions
 
-- Automatic derivation of a typed Mojo model from a `struct` plus field metadata has not been demonstrated for Typejo's required validation and construction flow.
+- Automatic derivation of a typed Mojo model from a `struct` plus field metadata has not been demonstrated; v0.2 uses explicit `TypejoModel` adapters.
 - Runtime reflection or dynamic field access equivalent to Python's object model is not assumed.
 - JSON parsing/serialization is not assumed to be in Mojo's standard library.
 - Annotations, macros, decorators, or generated code must not be assumed to provide a derive system without a compiler-checked prototype.

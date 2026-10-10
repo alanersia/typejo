@@ -1,6 +1,6 @@
 # Core validation semantics
 
-**Status:** proposed v1.0 contract. The strict primitive type checks and safe result behavior are implemented in v0.1; field presence, nullability, nested paths, coercion, and model ordering remain future behavior. Changes require updating the API contract, roadmap, comparison page, and tests together.
+**Status:** v0.1 strict primitive validation and these v0.2 composite semantics are implemented for explicit `TypejoModel` adapters over `InputValue`. JSON parsing, coercion, custom validators, resource limits, and automatic model derivation remain future behavior. Changes require updating the API contract, roadmap, comparison page, and tests together.
 
 ## Input states and fields
 
@@ -45,7 +45,7 @@ An issue has a stable machine-readable code, a typed path, a human-readable mess
 
 Safe APIs return a result value for invalid data. They do not terminate the process. A separately named convenience API may propagate a Mojo error, but callers must handle it. Syntax, validation, and serialization failures have distinct error categories and stable codes.
 
-Unknown object fields are rejected by default. A per-model policy may reject, ignore, or preserve extras only when preservation has a sound typed representation. Ignored fields are deliberately discarded and that behavior is explicit at the call site/schema.
+Unknown object fields are rejected by default by `validate_model`. Callers may select ignore or preserve. Preserve is accepted only for a model that declares typed `ExtraFields`; its adapter stores the unknown node references and a copy of the input tree. Ignore and preserve are passed to the adapter, which is responsible for collecting extras when preservation is selected. JSON parsing and serialization do not exist yet, so these are `InputValue` tree semantics.
 
 ## Validators and transformation
 

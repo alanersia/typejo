@@ -18,16 +18,223 @@ comptime PrimitiveValue = Variant[
 ]
 
 comptime NumberBound = Variant[Int, Float64]
+comptime ValidationPathSegment = Variant[String, Int]
+
+comptime INPUT_NULL = 0
+comptime INPUT_PRIMITIVE = 1
+comptime INPUT_OBJECT = 2
+comptime INPUT_ARRAY = 3
+
+struct InputNode(Copyable):
+    var parent: Int
+    var key: String
+    var kind: Int
+    var primitive: Optional[PrimitiveValue]
+
+    def __init__(out self, parent: Int, key: String, kind: Int):
+        self.parent = parent
+        self.key = key
+        self.kind = kind
+        self.primitive = None
+
+    def __init__(out self, parent: Int, key: String, primitive: PrimitiveValue):
+        self.parent = parent
+        self.key = key
+        self.kind = INPUT_PRIMITIVE
+        self.primitive = Optional[PrimitiveValue](primitive.copy())
+
+struct InputValue(Copyable):
+    var nodes: List[InputNode]
+
+    def __init__(out self):
+        self.nodes = List[InputNode]()
+        var root = InputNode(-1, "", INPUT_OBJECT)
+        self.nodes.append(root^)
+
+    def root(self) -> Int:
+        return 0
+
+    def node_count(ref self) -> Int:
+        return len(self.nodes)
+
+    def is_well_formed(ref self) -> Bool:
+        if len(self.nodes) == 0 or self.nodes[0].parent != -1 or self.nodes[0].kind != INPUT_OBJECT:
+            return False
+        for index in range(1, len(self.nodes)):
+            var parent = self.nodes[index].parent
+            if parent < 0 or parent >= index:
+                return False
+            if self.nodes[parent].kind == INPUT_OBJECT:
+                if self.nodes[index].key == "":
+                    return False
+                for previous in range(1, index):
+                    if self.nodes[previous].parent == parent and self.nodes[previous].key == self.nodes[index].key:
+                        return False
+            elif self.nodes[parent].kind == INPUT_ARRAY:
+                if self.nodes[index].key != "":
+                    return False
+            else:
+                return False
+            if self.nodes[index].kind < INPUT_NULL or self.nodes[index].kind > INPUT_ARRAY:
+                return False
+            if self.nodes[index].kind == INPUT_PRIMITIVE and not self.nodes[index].primitive:
+                return False
+            if self.nodes[index].kind != INPUT_PRIMITIVE and self.nodes[index].primitive:
+                return False
+        return True
+
+    def add_object(mut self, parent: Int, key: String) -> Int:
+        var node = InputNode(parent, key, INPUT_OBJECT)
+        self.nodes.append(node^)
+        return len(self.nodes) - 1
+
+    def add_array(mut self, parent: Int, key: String) -> Int:
+        var node = InputNode(parent, key, INPUT_ARRAY)
+        self.nodes.append(node^)
+        return len(self.nodes) - 1
+
+    def add_null(mut self, parent: Int, key: String) -> Int:
+        var node = InputNode(parent, key, INPUT_NULL)
+        self.nodes.append(node^)
+        return len(self.nodes) - 1
+
+    def add_primitive(mut self, parent: Int, key: String, value: PrimitiveValue) -> Int:
+        var node = InputNode(parent, key, value)
+        self.nodes.append(node^)
+        return len(self.nodes) - 1
+
+    def add_object_item(mut self, parent: Int) -> Int:
+        return self.add_object(parent, "")
+
+    def add_array_item(mut self, parent: Int) -> Int:
+        return self.add_array(parent, "")
+
+    def add_null_item(mut self, parent: Int) -> Int:
+        return self.add_null(parent, "")
+
+    def add_primitive_item(mut self, parent: Int, value: PrimitiveValue) -> Int:
+        return self.add_primitive(parent, "", value)
+
+    def kind(ref self, node: Int) -> Int:
+        return self.nodes[node].kind
+
+    def key(ref self, node: Int) -> String:
+        return self.nodes[node].key.copy()
+
+    def primitive(ref self, node: Int) -> PrimitiveValue:
+        return self.nodes[node].primitive.value().copy()
+
+    def find_field(ref self, parent: Int, key: String) -> Optional[Int]:
+        for index in range(1, len(self.nodes)):
+            if self.nodes[index].parent == parent and self.nodes[index].key == key:
+                return Optional[Int](index)
+        return None
+
+    def child_count(ref self, parent: Int) -> Int:
+        var count = 0
+        for index in range(1, len(self.nodes)):
+            if self.nodes[index].parent == parent:
+                count += 1
+        return count
+
+    def child_at(ref self, parent: Int, ordinal: Int) -> Optional[Int]:
+        var current = 0
+        for index in range(1, len(self.nodes)):
+            if self.nodes[index].parent == parent:
+                if current == ordinal:
+                    return Optional[Int](index)
+                current += 1
+        return None
+
+    def has_field(ref self, parent: Int, key: String) -> Bool:
+        return self.find_field(parent, key).has_value()
+
+struct UnknownFieldPolicy:
+    var mode: Int
+
+    def __init__(out self, mode: Int):
+        self.mode = mode
+
+    @staticmethod
+    def reject() -> Self:
+        return Self(0)
+
+    @staticmethod
+    def ignore() -> Self:
+        return Self(1)
+
+    @staticmethod
+    def preserve() -> Self:
+        return Self(2)
+
+struct ExtraFields(Copyable):
+    var source: InputValue
+    var nodes: List[Int]
+
+    def __init__(out self, var source: InputValue, var nodes: List[Int]):
+        self.source = source^
+        self.nodes = nodes^
+
+    def count(ref self) -> Int:
+        return len(self.nodes)
+
+    def key(ref self, index: Int) -> String:
+        return self.source.key(self.nodes[index])
+
+    def kind(ref self, index: Int) -> Int:
+        return self.source.kind(self.nodes[index])
+
+    def primitive(ref self, index: Int) -> PrimitiveValue:
+        return self.source.primitive(self.nodes[index])
+
+    def node(ref self, index: Int) -> Int:
+        return self.nodes[index]
+
+    def input(ref self) -> InputValue:
+        return self.source.copy()
 
 struct ValidationIssue:
     var code: String
     var path: String
     var message: String
+    var path_segments: List[ValidationPathSegment]
 
     def __init__(out self, code: String, message: String):
         self.code = code
         self.path = ""
         self.message = message
+        self.path_segments = List[ValidationPathSegment]()
+
+    def add_field(mut self, field: String):
+        if self.path:
+            self.path = self.path + "." + field
+        else:
+            self.path = field.copy()
+        self.path_segments.append(ValidationPathSegment(field.copy()))
+
+    def add_index(mut self, index: Int):
+        self.path = self.path + "[" + String(index) + "]"
+        self.path_segments.append(ValidationPathSegment(index))
+
+    def prepend_field(mut self, field: String):
+        if len(self.path_segments) > 0 and self.path_segments[0].isa[Int]():
+            self.path = field + self.path
+        elif self.path:
+            self.path = field + "." + self.path
+        else:
+            self.path = field.copy()
+        self.path_segments.insert(0, ValidationPathSegment(field.copy()))
+
+    def prepend_index(mut self, index: Int):
+        var prefix = "[" + String(index) + "]"
+        var separator = "."
+        if len(self.path_segments) > 0 and self.path_segments[0].isa[Int]():
+            separator = ""
+        self.path = prefix + (separator + self.path if self.path else "")
+        self.path_segments.insert(0, ValidationPathSegment(index))
+
+    def replace_code(mut self, code: String):
+        self.code = code.copy()
 
 struct Constraints:
     var minimum: Optional[NumberBound]
@@ -84,26 +291,31 @@ struct Constraints:
         self.max_length = max_length
 
 struct ValidationResult[T: Copyable & Deinitable]:
-    var result_input: PrimitiveValue
+    var result_value: Optional[Self.T]
     var success: Bool
     var result_issues: List[ValidationIssue]
 
-    def __init__(out self, mut input: PrimitiveValue):
-        self.result_input = input.copy()
+    def __init__(out self, var value: Self.T):
+        self.result_value = Optional[Self.T](value^)
         self.success = True
         self.result_issues = List[ValidationIssue]()
 
-    def __init__(out self, mut input: PrimitiveValue, var issue: ValidationIssue):
-        self.result_input = input.copy()
+    def __init__(out self, var issue: ValidationIssue):
+        self.result_value = None
         self.success = False
         self.result_issues = List[ValidationIssue]()
         self.result_issues.append(issue^)
+
+    def __init__(out self, var issues: List[ValidationIssue]):
+        self.result_value = None
+        self.success = False
+        self.result_issues = issues^
 
     def is_ok(self) -> Bool:
         return self.success
 
     def value(mut self) -> Self.T:
-        return self.result_input[Self.T].copy()
+        return self.result_value.value().copy()
 
     def issues(ref self) -> List[ValidationIssue]:
         var copies = List[ValidationIssue]()
@@ -113,5 +325,41 @@ struct ValidationResult[T: Copyable & Deinitable]:
                 self.result_issues[i].message.copy(),
             )
             issue.path = self.result_issues[i].path.copy()
+            for segment_index in range(len(self.result_issues[i].path_segments)):
+                issue.path_segments.append(self.result_issues[i].path_segments[segment_index].copy())
             copies.append(issue^)
         return copies^
+
+    def add_field(mut self, field: String):
+        for i in range(len(self.result_issues)):
+            self.result_issues[i].add_field(field.copy())
+
+    def add_index(mut self, index: Int):
+        for i in range(len(self.result_issues)):
+            self.result_issues[i].add_index(index)
+
+    def prepend_field(mut self, field: String):
+        for i in range(len(self.result_issues)):
+            self.result_issues[i].prepend_field(field.copy())
+
+    def prepend_index(mut self, index: Int):
+        for i in range(len(self.result_issues)):
+            self.result_issues[i].prepend_index(index)
+
+    def replace_issue_code(mut self, code: String):
+        for i in range(len(self.result_issues)):
+            self.result_issues[i].replace_code(code)
+
+    def append_issues(mut self, var issues: List[ValidationIssue]):
+        self.result_issues.extend(issues^)
+
+trait TypejoModel(Copyable, Deinitable):
+    @staticmethod
+    def supports_extras() -> Bool:
+        ...
+
+    @staticmethod
+    def from_input(
+        ref input: InputValue, node: Int, unknown_fields: UnknownFieldPolicy
+    ) -> ValidationResult[Self]:
+        ...

@@ -16,21 +16,23 @@ Milestones are labeled by status. A milestone is complete only when its acceptan
 
 ## v0.2 — Composite Validation
 
-**Deliver:** optional and nullable fields; missing/null/invalid/defaulted distinctions; lists and nested collections; required fields and defaults; nested models and paths; unknown-field policy; basic collection constraints.
+**Status: implemented and verified on Mojo 1.1.0.**
+
+**Deliver:** a manually built `InputValue` tree; explicit `TypejoModel` adapters that construct typed structs; required primitive fields, optional/nullable primitive fields, validated defaults, nested models, primitive/model arrays, typed field/index paths, unknown-field reject/ignore/preserve policy, and collection length constraints. Adapters reuse Typejo's field and collection validators. JSON parsing is not part of this milestone.
 
 **Acceptance:** missing, null, invalid, and defaulted values follow [the semantics specification](specifications/semantics.md); nested errors retain typed field/index path segments; unknown fields follow an explicit policy; collection length and item validation produce deterministic results.
 
-**Tests:** a truth table for missing/null/default/invalid; nested object and list failures; unknown-field modes; empty/min/max collection boundaries; default application and invalid-default rejection.
+**Tests:** missing/null/default/invalid cases; nested object and list failures; unknown-field modes; collection boundaries; invalid-default rejection. Verified with `mojo -I . tests/test_composites.mojo` and `mojo -I . examples/models.mojo`.
 
 ## v0.3 — Typed Model Foundation
 
-**Deliver:** typed Mojo struct integration; reusable model definitions; field metadata and constraints; model-level validation; generic validation interfaces; validated outputs with the requested concrete type; minimal model boilerplate.
+**Deliver:** improve model ergonomics after v0.2's explicit adapter path; investigate field metadata and reducing adapter boilerplate while retaining typed construction and constraints.
 
-**Acceptance:** one model declaration is the source of truth for field types; users do not re-declare the same fields in a separate validator; errors map back to model fields; a compile-time reflection prototype is evaluated on the supported compiler. If reflection cannot safely derive and construct a model, publish and test an explicit trait/adapter route and document the unavoidable mapping once.
+**Acceptance:** adapters remain safe and errors map to model fields; a compile-time reflection prototype is evaluated on the supported compiler. If reflection cannot safely derive and construct a model, retain the explicit trait/adapter route and document the unavoidable field mapping.
 
-**Tests:** compile-time checks for model conformance and unsupported field types; valid construction; field and model failures; nested model composition; non-copyable or ownership-sensitive field behavior where supported.
+**Tests:** compile-time checks for model conformance and unsupported field types; valid construction; field failures; nested model composition; ownership-sensitive field behavior where supported.
 
-**Feasibility gate:** field enumeration is available in Mojo 1.1.0, but automatic metadata attachment, safe field access, and construction of arbitrary structs as one end-to-end derive flow must be proven before promising a derive API.
+**Feasibility gate:** field enumeration is available in Mojo 1.1.0, but automatic metadata attachment, safe field access, and construction of arbitrary structs as one end-to-end derive flow must be proven before promising a derive API. v0.2 does not depend on reflection for field conversion.
 
 ## v0.4 — Parsing and Deserialization
 

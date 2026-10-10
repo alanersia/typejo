@@ -4,7 +4,7 @@ Typejo is a standalone Mojo library for validating, parsing, and serializing str
 
 ## Current status
 
-The v0.1 primitive validation foundation is implemented and verified with Mojo 1.1.0. Composite models, collections, and JSON remain planned. See the [implementation status and roadmap](roadmap.md).
+v0.1 primitive validation and the v0.2 composite validation foundation are implemented and verified with Mojo 1.1.0. Composite inputs use a Typejo-owned `InputValue` tree and explicit `TypejoModel` adapters; JSON parsing and serialization remain planned. See the [implementation status and roadmap](roadmap.md).
 
 ## Guides
 
@@ -25,4 +25,4 @@ The v0.1 primitive validation foundation is implemented and verified with Mojo 1
 - **Planned:** assigned to a roadmap milestone but not implemented.
 - **Deferred:** intentionally outside the v1.0 target or gated on a technical feasibility review.
 
-The roadmap and API contract distinguish implemented v0.1 primitive behavior from later Typejo targets. Mojo language facts are labeled separately from Typejo design choices and link to the official Mojo 1.1.0 documentation where possible.
+The roadmap and API contract distinguish implemented v0.1/v0.2 behavior from later Typejo targets. Mojo language facts are labeled separately from Typejo design choices and link to the official Mojo 1.1.0 documentation where possible.
