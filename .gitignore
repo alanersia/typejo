@@ -8,3 +8,6 @@ __mojocache__/
 # Build outputs
 /build/
 /dist/
+
+# Graphify outputs
+/graphify-out/
