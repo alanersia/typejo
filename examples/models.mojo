@@ -34,10 +34,8 @@ struct User(TypejoModel):
         var username_result = validate_field[String](
             input, node, "username", username_rules
         )
-        var username = String("")
-        if username_result.is_ok():
-            username = username_result.value()
-        else:
+        var username = username_result.value_or(String(""))
+        if not username_result.is_ok():
             var field_issues = username_result.issues()
             issues.extend(field_issues^)
 
@@ -47,10 +45,8 @@ struct User(TypejoModel):
         var age_result = validate_field[Int](
             input, node, "age", age_rules, age_default
         )
-        var age = 18
-        if age_result.is_ok():
-            age = age_result.value()
-        else:
+        var age = age_result.value_or(18)
+        if not age_result.is_ok():
             var field_issues = age_result.issues()
             issues.extend(field_issues^)
 
@@ -58,10 +54,8 @@ struct User(TypejoModel):
         var nickname_result = validate_optional_field[String](
             input, node, "nickname", nickname_rules, nullable=True
         )
-        var nickname: Optional[String] = None
-        if nickname_result.is_ok():
-            nickname = nickname_result.value()
-        else:
+        var nickname = nickname_result.value_or(None)
+        if not nickname_result.is_ok():
             var field_issues = nickname_result.issues()
             issues.extend(field_issues^)
 

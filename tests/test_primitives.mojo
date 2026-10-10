@@ -99,6 +99,17 @@ def test_result_and_issue_order_are_stable() raises:
     assert_equal(first.issues()[0].code, second.issues()[0].code)
     assert_equal(first.issues()[0].message, second.issues()[0].message)
 
+def test_value_or_returns_value_or_fallback_and_keeps_issues() raises:
+    var valid_input = PrimitiveValue(Int(7))
+    var valid = validate[Int](valid_input)
+    assert_equal(valid.value_or(0), 7)
+
+    var invalid_input = PrimitiveValue(Int(-1))
+    var minimum = Constraints(minimum=0)
+    var invalid = validate[Int](invalid_input, minimum)
+    assert_equal(invalid.value_or(0), 0)
+    assert_equal(invalid.issues()[0].code, "below_minimum")
+
 def test_float4_constraints_and_nan() raises:
     var input = PrimitiveValue(Float4_e2m1fn(1.0))
     var bounds = Constraints(minimum=Float64(1.5))
