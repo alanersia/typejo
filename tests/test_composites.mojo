@@ -59,6 +59,31 @@ struct Address(TypejoModel):
             extras = collect_extras[Self](input, node)
         return ValidationResult[Self](Address(city^, zip, extras^))
 
+@fieldwise_init
+struct ReflectionProbe:
+    var name: String
+    var age: Int
+    var nickname: Optional[String]
+    var tags: List[String]
+
+def test_reflection_field_names_types_and_access() raises:
+    comptime names = reflect[ReflectionProbe].field_names()
+    comptime types = reflect[ReflectionProbe].field_types()
+    comptime assert types[0] == String
+    comptime assert types[1] == Int
+    comptime assert types[2] == Optional[String]
+    comptime assert types[3] == List[String]
+    assert_equal(String(materialize[names[0]]()), "name")
+    assert_equal(String(materialize[names[1]]()), "age")
+    assert_equal(String(materialize[names[2]]()), "nickname")
+    assert_equal(String(materialize[names[3]]()), "tags")
+
+    var probe = ReflectionProbe("Ada", 42, Optional[String]("Ada"), ["mojo"])
+    assert_equal(reflect[ReflectionProbe].field_ref[0](probe), "Ada")
+    assert_equal(reflect[ReflectionProbe].field_ref[1](probe), 42)
+    assert_equal(reflect[ReflectionProbe].field_ref[2](probe).value(), "Ada")
+    assert_equal(reflect[ReflectionProbe].field_ref[3](probe)[0], "mojo")
+
 def empty_extras(ref input: InputValue) -> ExtraFields:
     var source = input.copy()
     var nodes = List[Int]()

@@ -26,13 +26,15 @@ Milestones are labeled by status. A milestone is complete only when its acceptan
 
 ## v0.3 — Typed Model Foundation
 
+**Status: implemented and verified on Mojo 1.1.0.**
+
 **Deliver:** improve model ergonomics after v0.2's explicit adapter path; investigate field metadata and reducing adapter boilerplate while retaining typed construction and constraints.
 
-**Acceptance:** adapters remain safe and errors map to model fields; a compile-time reflection prototype is evaluated on the supported compiler. If reflection cannot safely derive and construct a model, retain the explicit trait/adapter route and document the unavoidable field mapping.
+**Acceptance:** adapters remain safe and errors map to model fields; a compile-time reflection probe verifies field names, types, and typed field access. Automatic model construction is not enabled because the probe does not establish safe construction for arbitrary structs; retain the explicit trait/adapter route.
 
-**Tests:** compile-time checks for model conformance and unsupported field types; valid construction; field failures; nested model composition; ownership-sensitive field behavior where supported.
+**Tests:** reflection checks for `String`, `Int`, `Optional[String]`, and `List[String]` fields; valid construction; field failures; nested model composition; ownership-sensitive field behavior where supported.
 
-**Feasibility gate:** field enumeration is available in Mojo 1.1.0, but automatic metadata attachment, safe field access, and construction of arbitrary structs as one end-to-end derive flow must be proven before promising a derive API. v0.2 does not depend on reflection for field conversion.
+**Feasibility gate:** the probe verifies enumeration and typed field access in Mojo 1.1.0, but automatic metadata attachment and construction of arbitrary structs as one end-to-end derive flow remain unproven. v0.3 adds no derive API; v0.2 conversion remains adapter-defined.
 
 ## v0.4 — Parsing and Deserialization
 

@@ -317,6 +317,11 @@ struct ValidationResult[T: Copyable & Deinitable]:
     def value(mut self) -> Self.T:
         return self.result_value.value().copy()
 
+    def value_or(mut self, var default: Self.T) -> Self.T:
+        if self.success:
+            return self.result_value.value().copy()
+        return default^
+
     def issues(ref self) -> List[ValidationIssue]:
         var copies = List[ValidationIssue]()
         for i in range(len(self.result_issues)):

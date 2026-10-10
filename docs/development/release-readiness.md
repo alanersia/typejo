@@ -1,6 +1,6 @@
 # Testing, benchmarking, and release readiness
 
-**Current status:** v0.1 primitive validation and v0.2 composite validation have passing tests and runnable examples verified with Mojo 1.1.0. Benchmarks, CI policy, JSON integration, and a supported-platform matrix remain future work. This page defines evidence required before v1.0.
+**Current status:** v0.1 primitive validation, v0.2 composite validation, and v0.3's model ergonomics and reflection probe have passing tests and runnable examples verified with Mojo 1.1.0. CI runs the suites and examples on Ubuntu. Benchmarks, JSON integration, and a supported-platform matrix remain future work. This page defines evidence required before v1.0.
 
 ## Correctness tests
 
