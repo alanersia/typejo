@@ -12,7 +12,7 @@ Milestones are labeled by status. A milestone is complete only when its acceptan
 
 **Tests:** valid and invalid primitive cases; numeric boundaries; string length boundaries; wrong-type cases including booleans supplied as numbers; stable error code/path/order assertions; safe error handling.
 
-**Verification:** `mojo run -I . tests/test_primitives.mojo` and `mojo run -I . examples/primitives.mojo`.
+**Verification from the repository root:** `mojo -I . tests/test_primitives.mojo` and `mojo -I . examples/primitives.mojo`. The app entry point is `examples/primitives.mojo`; the library package entry point is `typejo/__init__.mojo`.
 
 ## v0.2 — Composite Validation
 
