@@ -6,7 +6,7 @@
 
 `PrimitiveValue` stores one strict primitive input: `String`, `Int`, `Bool`, or a Mojo scalar floating-point value. `validate[T](input, constraints)` returns `ValidationResult[T]`. Use `is_ok()` to inspect success, `value()` after success, and `issues()` after failure. Validation issues have stable codes, an empty root path, and deterministic order. Invalid input is returned as issues rather than terminating the process. Call `value()` only after `is_ok()` returns true.
 
-Constraints include inclusive `Int` bounds for integer inputs, inclusive `Float64` bounds for floating-point inputs, and minimum/maximum string length in Unicode code points. Boolean validation takes no constraints. There is no implicit coercion; non-finite floats and invalid constraint configurations are reported as issues. `Float4_e2m1fn` is accepted as a tagged input but returns `unsupported_type` on Mojo 1.1 CPU due to missing scalar compare/conversion lowering.
+Constraints include inclusive `Int` bounds for integer inputs, inclusive `Float64` bounds for floating-point inputs, and minimum/maximum string length in Unicode code points. Boolean validation takes no constraints. There is no implicit coercion; non-finite floats and invalid constraint configurations are reported as issues. `Float4_e2m1fn` is decoded from its packed representation because Mojo 1.1 does not provide a CPU scalar conversion for it.
 
 See [the runnable primitive example](../../examples/primitives.mojo) and [the primitive tests](../../tests/test_primitives.mojo). The first milestone does not include model integration, collections, optional/null handling, JSON, or serialization.
 

@@ -6,7 +6,7 @@ Milestones are labeled by status. A milestone is complete only when its acceptan
 
 **Status: implemented and verified on Mojo 1.1.0.**
 
-**Deliver:** primitive validation for `String`, `Int`, `Bool`, and supported Mojo scalar floating-point inputs; explicit type mismatch; inclusive numeric and string length constraints; strict mode; deterministic validation results; structured errors with stable codes, paths, and messages. String length counts Unicode codepoints. `Float4_e2m1fn` is represented in `PrimitiveValue`, but validation returns `unsupported_type` on the CPU because Mojo 1.1 does not lower its scalar compare/conversion operations there.
+**Deliver:** primitive validation for `String`, `Int`, `Bool`, and Mojo 1.1 scalar floating-point inputs; explicit type mismatch; inclusive numeric and string length constraints; strict mode; deterministic validation results; structured errors with stable codes, paths, and messages. String length counts Unicode codepoints. `Float4_e2m1fn` bounds use a small packed-format decoder because Mojo 1.1 does not provide a CPU scalar conversion for it.
 
 **Acceptance:** strict validation rejects values of the wrong input type without implicit conversion; constraints run only after type checks; equivalent inputs produce errors in the same order; safe validation returns a result rather than terminating the program; every error carries a code, path, and actionable message.
 

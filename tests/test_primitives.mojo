@@ -1,4 +1,5 @@
 from std.testing import assert_equal, assert_false, assert_true, TestSuite
+from std.memory import bitcast
 from typejo import Constraints, PrimitiveValue, validate
 
 def test_valid_primitives() raises:
@@ -9,6 +10,7 @@ def test_valid_primitives() raises:
     var single = PrimitiveValue(Float32(1.5))
     var double = PrimitiveValue(Float64(1.5))
     var brain = PrimitiveValue(BFloat16(1.5))
+    var fp4 = PrimitiveValue(Float4_e2m1fn(1.5))
     var fp8a = PrimitiveValue(Float8_e4m3fn(1.5))
     var fp8b = PrimitiveValue(Float8_e4m3fnuz(1.5))
     var fp8c = PrimitiveValue(Float8_e5m2(1.5))
@@ -21,6 +23,7 @@ def test_valid_primitives() raises:
     assert_true(validate[Float32](single).is_ok())
     assert_true(validate[Float64](double).is_ok())
     assert_true(validate[BFloat16](brain).is_ok())
+    assert_true(validate[Float4_e2m1fn](fp4).is_ok())
     assert_true(validate[Float8_e4m3fn](fp8a).is_ok())
     assert_true(validate[Float8_e4m3fnuz](fp8b).is_ok())
     assert_true(validate[Float8_e5m2](fp8c).is_ok())
@@ -96,11 +99,13 @@ def test_result_and_issue_order_are_stable() raises:
     assert_equal(first.issues()[0].code, second.issues()[0].code)
     assert_equal(first.issues()[0].message, second.issues()[0].message)
 
-def test_float4_cpu_limit_is_structured() raises:
+def test_float4_constraints_and_nan() raises:
     var input = PrimitiveValue(Float4_e2m1fn(1.0))
-    var result = validate[Float4_e2m1fn](input)
-    assert_false(result.is_ok())
-    assert_equal(result.issues()[0].code, "unsupported_type")
+    var bounds = Constraints(minimum=Float64(1.5))
+    assert_equal(validate[Float4_e2m1fn](input, bounds).issues()[0].code, "below_minimum")
+    var nan_lanes = bitcast[.float4_e2m1fn, 2](UInt8(7))
+    var nan = PrimitiveValue(nan_lanes[0])
+    assert_equal(validate[Float4_e2m1fn](nan).issues()[0].code, "non_finite")
 
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

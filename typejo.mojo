@@ -1,4 +1,5 @@
 from std.collections import List, Optional
+from std.memory import bitcast
 from std.utils.numerics import isfinite
 from std.utils import Variant
 
@@ -42,7 +43,13 @@ struct Constraints:
         self.min_length = None
         self.max_length = None
 
-    def __init__(out self, minimum: Int, maximum: Int = Int.MAX):
+    def __init__(out self, minimum: Int):
+        self.minimum = NumberBound(minimum)
+        self.maximum = None
+        self.min_length = None
+        self.max_length = None
+
+    def __init__(out self, minimum: Int, maximum: Int):
         self.minimum = NumberBound(minimum)
         self.maximum = NumberBound(maximum)
         self.min_length = None
@@ -54,7 +61,13 @@ struct Constraints:
         self.min_length = None
         self.max_length = None
 
-    def __init__(out self, minimum: Float64, maximum: Float64 = Float64.MAX):
+    def __init__(out self, minimum: Float64):
+        self.minimum = NumberBound(minimum)
+        self.maximum = None
+        self.min_length = None
+        self.max_length = None
+
+    def __init__(out self, minimum: Float64, maximum: Float64):
         self.minimum = NumberBound(minimum)
         self.maximum = NumberBound(maximum)
         self.min_length = None
@@ -141,11 +154,28 @@ def validate[T: Copyable & Deinitable](
         if constraints.minimum or constraints.maximum or constraints.min_length or constraints.max_length:
             return ValidationResult[T](input, ValidationIssue("invalid_constraints", "Bool does not accept constraints."))
     else:
-        # shortcut: Float4 cannot be compared or widened on Mojo 1.1 CPU, upgrade when the compiler exposes CPU scalar operations.
-        if input.isa[Float4_e2m1fn]():
-            return ValidationResult[T](input, ValidationIssue("unsupported_type", "Float4_e2m1fn cannot be validated on the Mojo 1.1 CPU runtime."))
         var number: Float64 = 0.0
-        if input.isa[Float16]():
+        if input.isa[Float4_e2m1fn]():
+            # Decode the four-bit format because Mojo 1.1 has no CPU conversion for it.
+            var paired = input[Float4_e2m1fn].join(input[Float4_e2m1fn])
+            var bits = Int(bitcast[.uint8, 1](paired)[0]) & 15
+            if bits & 7 == 7:
+                return ValidationResult[T](input, ValidationIssue("non_finite", "Number must be finite."))
+            var magnitude: Float64 = 0.0
+            if bits & 7 == 1:
+                magnitude = 0.5
+            elif bits & 7 == 2:
+                magnitude = 1.0
+            elif bits & 7 == 3:
+                magnitude = 1.5
+            elif bits & 7 == 4:
+                magnitude = 2.0
+            elif bits & 7 == 5:
+                magnitude = 3.0
+            elif bits & 7 == 6:
+                magnitude = 4.0
+            number = magnitude if bits & 8 == 0 else -magnitude
+        elif input.isa[Float16]():
             number = Float64(input[Float16])
         elif input.isa[Float32]():
             number = Float64(input[Float32])
