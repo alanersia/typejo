@@ -1,8 +1,12 @@
 # Typejo
 
-Typejo is an early-stage project to build a Mojo-native data validation library, inspired by the developer experience of Pydantic.
+Typejo aims to be a standalone, type-safe, Mojo-native library for schema validation, parsing, and serialization. It takes developer-experience cues from Pydantic and Zod while following Mojo's type system and ownership model.
 
-The goal is to define and validate structured data directly in Mojo, without depending on Python at runtime. The API and implementation are not available yet; this repository is being prepared for initial development.
+The v1.0 target is reliable conversion between untrusted external data and strongly typed Mojo models, with predictable validation behavior and structured errors. Typejo must work without Miduct and must not require Python at runtime.
+
+**Implementation status:** v0.1 primitive validation and the v0.2 composite validation foundation are implemented and verified with Mojo 1.1.0. Model construction uses an explicit `TypejoModel` adapter over an `InputValue` tree. JSON parsing and serialization remain later milestones.
+
+The library API lives in the `typejo/` package. From the repository root, run `mojo -I . examples/primitives.mojo` or `mojo -I . examples/models.mojo`; run suites with `mojo -I . tests/test_primitives.mojo` and `mojo -I . tests/test_composites.mojo`. `examples/` contains application entry points; `typejo/__init__.mojo` is the public package entry point. Start with the [documentation index](docs/README.md), [roadmap](docs/roadmap.md), [architecture](docs/architecture/overview.md), and [API contract](docs/api/overview.md).
 
 ## Contributing
 
