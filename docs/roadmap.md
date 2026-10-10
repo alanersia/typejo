@@ -1,14 +1,18 @@
 # Typejo roadmap
 
-All milestones below are planning targets. **No Typejo feature is implemented yet.** A milestone is complete only when its acceptance criteria and tests pass on the documented supported Mojo version.
+Milestones are labeled by status. A milestone is complete only when its acceptance criteria and tests pass on the documented supported Mojo version.
 
 ## v0.1 — Validation Foundation
 
-**Deliver:** primitive validation for `String`, `Int`, floating-point scalar, and `Bool` inputs; explicit type mismatch; basic numeric and string constraints; strict mode; deterministic validation results; structured errors with stable codes, paths, and messages.
+**Status: implemented and verified on Mojo 1.1.0.**
+
+**Deliver:** primitive validation for `String`, `Int`, `Bool`, and supported Mojo scalar floating-point inputs; explicit type mismatch; inclusive numeric and string length constraints; strict mode; deterministic validation results; structured errors with stable codes, paths, and messages. String length counts Unicode codepoints. `Float4_e2m1fn` is represented in `PrimitiveValue`, but validation returns `unsupported_type` on the CPU because Mojo 1.1 does not lower its scalar compare/conversion operations there.
 
 **Acceptance:** strict validation rejects values of the wrong input type without implicit conversion; constraints run only after type checks; equivalent inputs produce errors in the same order; safe validation returns a result rather than terminating the program; every error carries a code, path, and actionable message.
 
 **Tests:** valid and invalid primitive cases; numeric boundaries; string length boundaries; wrong-type cases including booleans supplied as numbers; stable error code/path/order assertions; safe error handling.
+
+**Verification:** `mojo run -I . tests/test_primitives.mojo` and `mojo run -I . examples/primitives.mojo`.
 
 ## v0.2 — Composite Validation
 

@@ -1,6 +1,6 @@
 # Core validation semantics
 
-**Status:** proposed v1.0 contract. None of these behaviors are implemented yet. Changes require updating the API contract, roadmap, comparison page, and tests together.
+**Status:** proposed v1.0 contract. The strict primitive type checks and safe result behavior are implemented in v0.1; field presence, nullability, nested paths, coercion, and model ordering remain future behavior. Changes require updating the API contract, roadmap, comparison page, and tests together.
 
 ## Input states and fields
 

@@ -4,9 +4,9 @@ Typejo aims to be a standalone, type-safe, Mojo-native library for schema valida
 
 The v1.0 target is reliable conversion between untrusted external data and strongly typed Mojo models, with predictable validation behavior and structured errors. Typejo must work without Miduct and must not require Python at runtime.
 
-**Implementation status:** pre-alpha. The repository currently contains only a Mojo hello-world program; the Typejo package, public API, tests, and examples have not been implemented. All documented capabilities are targets or proposals unless explicitly marked otherwise.
+**Implementation status:** v0.1 primitive validation is implemented and verified with Mojo 1.1.0. Model integration, collections, JSON parsing, and serialization remain later milestones.
 
-Start with the [documentation index](docs/README.md), [roadmap](docs/roadmap.md), [architecture](docs/architecture/overview.md), and [proposed API contract](docs/api/overview.md).
+Run the [primitive example](examples/primitives.mojo) with `mojo run -I . examples/primitives.mojo`. Start with the [documentation index](docs/README.md), [roadmap](docs/roadmap.md), [architecture](docs/architecture/overview.md), and [API contract](docs/api/overview.md).
 
 ## Contributing
 

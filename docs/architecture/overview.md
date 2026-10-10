@@ -32,4 +32,4 @@ v0.3 is therefore a feasibility milestone, not a promise of automatic derive. If
 
 ## Compatibility and status
 
-The only local compiler observed during this audit is Mojo 1.1.0. The repository has no package source, package manifest, tests, or compatibility policy. See [Mojo compatibility](mojo-compatibility.md) and the [roadmap](../roadmap.md). All Typejo architecture in this document is proposed.
+The v0.1 primitive API and tests are verified with Mojo 1.1.0. The repository has no package manifest or compatibility policy, and model integration remains proposed. See [Mojo compatibility](mojo-compatibility.md) and the [roadmap](../roadmap.md).

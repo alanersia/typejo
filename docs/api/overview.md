@@ -1,12 +1,12 @@
 # Typejo API contract
 
-**Status:** v0.1 describes the first implementation contract. Model, JSON, serialization, and custom-validator APIs below describe later targets.
+**Status:** v0.1 primitive API is implemented and verified with Mojo 1.1.0. Model, JSON, serialization, and custom-validator APIs below describe later targets.
 
 ## Implemented in v0.1
 
-`PrimitiveValue` stores one strict primitive input: `String`, `Int`, `Bool`, or a Mojo scalar floating-point value. `validate[T](input, constraints)` returns `ValidationResult[T]`. Use `is_ok()` to inspect success, `value()` after success, and `issues()` after failure. Validation issues have stable codes, an empty root path, and deterministic order. Invalid input is returned as issues rather than terminating the process.
+`PrimitiveValue` stores one strict primitive input: `String`, `Int`, `Bool`, or a Mojo scalar floating-point value. `validate[T](input, constraints)` returns `ValidationResult[T]`. Use `is_ok()` to inspect success, `value()` after success, and `issues()` after failure. Validation issues have stable codes, an empty root path, and deterministic order. Invalid input is returned as issues rather than terminating the process. Call `value()` only after `is_ok()` returns true.
 
-Constraints include inclusive numeric minimum/maximum and string minimum/maximum length in Unicode code points. Boolean validation takes no constraints. There is no implicit coercion; non-finite floats and invalid constraint configurations are reported as issues.
+Constraints include inclusive `Int` bounds for integer inputs, inclusive `Float64` bounds for floating-point inputs, and minimum/maximum string length in Unicode code points. Boolean validation takes no constraints. There is no implicit coercion; non-finite floats and invalid constraint configurations are reported as issues. `Float4_e2m1fn` is accepted as a tagged input but returns `unsupported_type` on Mojo 1.1 CPU due to missing scalar compare/conversion lowering.
 
 See [the runnable primitive example](../../examples/primitives.mojo) and [the primitive tests](../../tests/test_primitives.mojo). The first milestone does not include model integration, collections, optional/null handling, JSON, or serialization.
 
@@ -30,7 +30,7 @@ The remainder of this page describes v1.0 design targets and does not imply impl
 |---|---|---|---|---|---|
 | Model declaration | A Mojo `struct` plus field constraints/default metadata. | A statically typed model declaration; invalid declarations should fail at compile time when detectable. | The declared struct remains the success type; no dynamic field insertion. | `struct User: TypejoModel` | Structs, traits, and compile-time reflection exist. A complete derive/metadata mechanism is unproven; see v0.3 gate. |
 | Field constraints | A field type plus named constraints such as length/range. | Metadata/schema input; invalid configuration is a declaration error where possible, otherwise a structured schema error. | A constraint does not widen the field's Mojo type. | `field(min_length=1)` | Illustrative only; do not assume decorators/annotations or Python `Field()` syntax. |
-| `validate[T]` | A parsed Typejo input value (provisionally `JsonValue`) and optional strict/coercion/unknown-field policy. | `ValidationResult[T]`: typed model or ordered `ValidationErrors`; safe form does not terminate. | Success contains exactly `T`; wrong source types fail unless explicit coercion permits them. | `validate[User](value)` | Generic functions/traits exist; input tree and result representation are proposals. |
+| `validate[T]` | v0.1 takes `PrimitiveValue`; the later model API takes a parsed Typejo input tree and explicit policy. | v0.1 returns `ValidationResult[T]` with a primitive value or ordered issues; later model result behavior remains a proposal. | v0.1 is strict and returns exactly the requested primitive type on success. | `validate[String](value)` | Model input trees and policy are not implemented. |
 | `validate_or_raise[T]` | Same input/policy as `validate`. | `T` or a propagated Typejo/Mojo error. | Same success type as safe validation. | `validate_or_raise[User](value)` | Mojo errors can propagate and must be handled; convenience only, not the recommended untrusted-input boundary. |
 | `validate_json[T]` | JSON text/bytes and parse/validation options. | A result containing `T`, or a categorized parse/validation error. | No model is exposed until both parsing and validation succeed. | `validate_json[User](source)` | JSON parser is not verified in stdlib 1.1.0; parser strategy is a v0.4 gate. |
 | `to_json` / `to_json_string` | A supported typed Mojo value and serialization options. | JSON value/text result or structured serialization error. | Input is statically typed; unsupported field types are reported rather than silently dropped. | `to_json_string(user)` | JSON serializer strategy and ownership costs need a v0.5 prototype. |

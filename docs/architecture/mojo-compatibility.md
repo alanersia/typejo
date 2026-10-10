@@ -1,6 +1,6 @@
 # Mojo compatibility notes
 
-**Audit baseline:** local `mojo --version` reported Mojo 1.1.0. This records the compiler available during the documentation audit; it is not yet a Typejo support policy. Recheck compiler-sensitive details before implementation and release.
+**Support baseline:** local `mojo --version` reported Mojo 1.1.0. v0.1 is verified with that compiler; recheck compiler-sensitive details before release.
 
 ## Verified language facts
 

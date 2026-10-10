@@ -1,6 +1,6 @@
 # Testing, benchmarking, and release readiness
 
-**Current status:** the repository has no test suite, benchmark, package source, CI policy, or supported-platform matrix. This page defines evidence required before v1.0; it does not claim that evidence exists.
+**Current status:** v0.1 has primitive tests and a runnable example verified with Mojo 1.1.0. Benchmarks, CI policy, and a supported-platform matrix remain future work. This page defines evidence required before v1.0.
 
 ## Correctness tests
 
