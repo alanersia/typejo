@@ -1,0 +1,10 @@
+# Mojo-generated artifacts
+__mojocache__/
+*.mojopkg
+
+# Pixi environment
+.pixi/
+
+# Build outputs
+/build/
+/dist/
