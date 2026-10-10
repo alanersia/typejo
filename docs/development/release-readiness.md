@@ -1,10 +1,10 @@
 # Testing, benchmarking, and release readiness
 
-**Current status:** v0.1 primitive validation, v0.2 composite validation, and v0.3's model ergonomics and reflection probe have passing tests and runnable examples verified with Mojo 1.1.0. CI runs the suites and examples on Ubuntu. Benchmarks, JSON integration, and a supported-platform matrix remain future work. This page defines evidence required before v1.0.
+**Current status:** v0.1 primitive validation through v0.4 JSON parsing/deserialization have passing suites on Mojo 1.1.0. CI runs all three suites and all three examples on Ubuntu. Benchmarks, serialization, fuzz/property testing, and a supported-platform matrix remain future work. This page defines evidence required before v1.0.
 
 ## Correctness tests
 
-- Unit tests for primitive types, every implemented constraint boundary, strictness, defaults, nullability, error codes, and path segments. Coercion tests belong to later milestones because coercion is not implemented.
+- Unit tests for primitive types, every implemented constraint boundary, strictness, defaults, nullability, error codes, and path segments. JSON tests cover opt-in numeric-string coercion and parser limits.
 - Composite/nested tests covering missing, null, invalid, defaulted, unknown, and deeply nested values.
 - Regression tests for every fixed bug and every published compatibility behavior.
 - Integration tests from JSON text through a typed model and back to JSON.

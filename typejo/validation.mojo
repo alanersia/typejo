@@ -15,6 +15,7 @@ from .types import (
     ValidationIssue,
     ValidationResult,
 )
+from .json_numbers import exact_json_int, json_number_end
 
 def validate[T: Copyable & Deinitable](
     mut input: PrimitiveValue,
@@ -112,6 +113,72 @@ def validate[T: Copyable & Deinitable](mut input: PrimitiveValue) -> ValidationR
     var constraints = Constraints()
     return validate[T](input, constraints)
 
+def _validate_json_number[T: Copyable & Deinitable](
+    source: String,
+    mut constraints: Constraints,
+) -> ValidationResult[T]:
+    if json_number_end(source) < 0:
+        return ValidationResult[T](ValidationIssue("type_mismatch", "Value is not a JSON number."))
+    if T == Int:
+        var exact = exact_json_int(source)
+        if not exact:
+            return ValidationResult[T](ValidationIssue("numeric_out_of_range", "JSON number must be an exact, representable integer."))
+        var primitive = PrimitiveValue(exact.value())
+        return validate[T](primitive, constraints)
+    var number: Float64
+    try:
+        number = Float64(source)
+    except:
+        return ValidationResult[T](ValidationIssue("numeric_out_of_range", "JSON number is outside the supported range."))
+    if not isfinite(number):
+        return ValidationResult[T](ValidationIssue("non_finite", "Number must be finite."))
+    comptime if T == Float64:
+        var primitive = PrimitiveValue(number)
+        return validate[T](primitive, constraints)
+    elif T == Float32:
+        var primitive = PrimitiveValue(Float32(number))
+        return validate[T](primitive, constraints)
+    elif T == Float16:
+        var primitive = PrimitiveValue(Float16(number))
+        return validate[T](primitive, constraints)
+    elif T == BFloat16:
+        var primitive = PrimitiveValue(BFloat16(number))
+        return validate[T](primitive, constraints)
+    elif T == Float4_e2m1fn:
+        var primitive = PrimitiveValue(Float4_e2m1fn(number))
+        return validate[T](primitive, constraints)
+    elif T == Float8_e4m3fn:
+        var primitive = PrimitiveValue(Float8_e4m3fn(number))
+        return validate[T](primitive, constraints)
+    elif T == Float8_e4m3fnuz:
+        var primitive = PrimitiveValue(Float8_e4m3fnuz(number))
+        return validate[T](primitive, constraints)
+    elif T == Float8_e5m2:
+        var primitive = PrimitiveValue(Float8_e5m2(number))
+        return validate[T](primitive, constraints)
+    elif T == Float8_e5m2fnuz:
+        var primitive = PrimitiveValue(Float8_e5m2fnuz(number))
+        return validate[T](primitive, constraints)
+    elif T == Float8_e8m0fnu:
+        var primitive = PrimitiveValue(Float8_e8m0fnu(number))
+        return validate[T](primitive, constraints)
+    else:
+        return ValidationResult[T](ValidationIssue("type_mismatch", "JSON numbers require a numeric model field."))
+
+def _validate_input_primitive[T: Copyable & Deinitable](
+    ref input: InputValue,
+    node: Int,
+    mut constraints: Constraints,
+) -> ValidationResult[T]:
+    var json_number = input.json_number(node)
+    if json_number:
+        return _validate_json_number[T](json_number.value(), constraints)
+    var primitive = input.primitive(node)
+    if input.permits_numeric_string_coercion() and primitive.isa[String]() and (T == Int or T == Float64):
+        var source = primitive[String]
+        return _validate_json_number[T](source, constraints)
+    return validate[T](primitive, constraints)
+
 def _is_model_field[T: TypejoModel](field_name: String) -> Bool:
     comptime names = reflect[T].field_names()
     var found = False
@@ -207,8 +274,7 @@ def validate_field[T: Copyable & Deinitable](
         issue.add_field(field.copy())
         return ValidationResult[T](issue^)
 
-    var primitive = input.primitive(child_node)
-    var result = validate[T](primitive, constraints)
+    var result = _validate_input_primitive[T](input, child_node, constraints)
     result.add_field(field.copy())
     return result^
 
@@ -262,8 +328,7 @@ def validate_optional_field[T: Copyable & Deinitable](
         issue.add_field(field.copy())
         return ValidationResult[Optional[T]](issue^)
 
-    var primitive = input.primitive(child_node)
-    var checked = validate[T](primitive, constraints)
+    var checked = _validate_input_primitive[T](input, child_node, constraints)
     if not checked.is_ok():
         checked.add_field(field.copy())
         var issues = checked.issues()
@@ -325,8 +390,8 @@ def validate_primitive_array[T: Copyable & Deinitable](
             issue.add_index(index)
             issues.append(issue^)
             continue
-        var primitive = input.primitive(child)
-        var result = validate[T](primitive)
+        var no_constraints = Constraints()
+        var result = _validate_input_primitive[T](input, child, no_constraints)
         if result.is_ok():
             values.append(result.value())
         else:

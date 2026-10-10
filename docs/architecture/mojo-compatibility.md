@@ -1,6 +1,6 @@
 # Mojo compatibility notes
 
-**Support baseline:** local `mojo --version` reported Mojo 1.1.0. v0.1 and v0.2 are verified with that compiler; recheck compiler-sensitive details before release.
+**Support baseline:** local `mojo --version` reported Mojo 1.1.0. v0.1 through v0.4 are verified with that compiler; recheck compiler-sensitive details before release.
 
 ## Verified language facts
 
@@ -12,13 +12,13 @@
 | Reflection | Mojo 1.1.0 reflection is incomplete and evolving. Typejo's probe verifies field names/types and `field_ref` access for `String`, `Int`, `Optional[String]`, and `List[String]`. | These checks support inspection and typed access only; they do not prove safe arbitrary model construction. Typejo keeps explicit adapters. |
 | Errors | Mojo errors propagate through function calls and can be handled with `try`/`except`; an unhandled error terminates the program. | Safe validation of untrusted input should return an explicit result/error value and must not rely on an unhandled raised error. |
 | Ownership | Values have owners; references have tracked origins/lifetimes; the compiler checks lifetime validity. | Parsers and validators must define whether they own, copy, consume, or borrow inputs. Do not return views into short-lived input buffers without an explicit lifetime contract. |
-| Standard library JSON | The official 1.1.0 standard-library index reviewed for this audit lists no JSON package. No standard JSON parser/serializer API was verified. | v0.4 needs a parser strategy decision. Do not write code against an assumed `std.json` API. |
+| Standard library JSON | No standard JSON parser/serializer API was verified for Mojo 1.1.0. | v0.4 uses a small Typejo-owned parser; serialization remains a later milestone. |
 
 ## Unverified or unsupported assumptions
 
 - Automatic derivation of a typed Mojo model from a `struct` plus field metadata has not been demonstrated; v0.2 uses explicit `TypejoModel` adapters.
 - Runtime reflection or dynamic field access equivalent to Python's object model is not assumed.
-- JSON parsing/serialization is not assumed to be in Mojo's standard library.
+- JSON parsing/serialization is not assumed to be in Mojo's standard library; current parsing is implemented by Typejo.
 - Annotations, macros, decorators, or generated code must not be assumed to provide a derive system without a compiler-checked prototype.
 - Compiler specialization does not guarantee faster end-to-end validation; compile time, code size, allocation, and runtime must be measured.
 

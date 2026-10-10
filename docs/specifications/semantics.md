@@ -1,6 +1,6 @@
 # Core validation semantics
 
-**Status:** v0.1 strict primitive validation and these v0.2 composite semantics are implemented for explicit `TypejoModel` adapters over `InputValue`. JSON parsing, coercion, custom validators, resource limits, and automatic model derivation remain future behavior. Changes require updating the API contract, roadmap, comparison page, and tests together.
+**Status:** v0.1 strict primitive validation, v0.2 composite semantics, and v0.4 JSON parsing, numeric-string coercion, and resource limits are implemented for explicit `TypejoModel` adapters. Custom validators and automatic model derivation remain future behavior. Changes require updating the API contract, roadmap, comparison page, and tests together.
 
 ## Input states and fields
 
@@ -25,7 +25,7 @@ At validation boundaries, the result is a complete typed model: there is no pers
 - Coercion is opt-in through an explicit policy. Each accepted conversion is documented and tested; there is no broad “best effort” conversion.
 - Validation does not mutate caller-owned input. A transformation is a separate configured stage with a declared output type.
 
-The exact set of coercions is a v0.4/v0.6 API decision and must be published as a conversion table before release.
+In v0.4, the only coercion is JSON numeric strings to `Int` or `Float64`, enabled by `JsonOptions.coerce_numeric_strings`. The string must match JSON number syntax; integer conversion remains exact and range checked. Other numeric strings and all other source/target pairs remain rejected.
 
 ## Ordering, errors, and paths
 
@@ -45,7 +45,7 @@ An issue has a stable machine-readable code, a typed path, a human-readable mess
 
 Safe APIs return a result value for invalid data. They do not terminate the process. A separately named convenience API may propagate a Mojo error, but callers must handle it. Syntax, validation, and serialization failures have distinct error categories and stable codes.
 
-Unknown object fields are rejected by default by `validate_model`. Callers may select ignore or preserve. Preserve is accepted only for a model that declares typed `ExtraFields`; its adapter stores the unknown node references and a copy of the input tree. Ignore and preserve are passed to the adapter, which is responsible for collecting extras when preservation is selected. JSON parsing and serialization do not exist yet, so these are `InputValue` tree semantics.
+Unknown object fields are rejected by default by `validate_model` and `validate_json`. Callers may select ignore or preserve. Preserve is accepted only for a model that declares typed `ExtraFields`; its adapter stores the unknown node references and a copy of the input tree. Ignore and preserve are passed to the adapter, which is responsible for collecting extras when preservation is selected.
 
 ## Validators and transformation
 
@@ -57,4 +57,4 @@ The initial v1.0 contract is synchronous. Async validators, database lookups, an
 
 Parsing external text produces owned values. Validated models own their fields and do not retain references into a temporary input buffer. Borrowed input views may be used internally only while their owner is live and must not escape the call. Any future zero-copy API requires a separate lifetime-aware contract and benchmarks.
 
-Parsers must reject malformed input safely and enforce configurable/documented limits for input bytes, nesting depth, collection sizes, and accumulated errors. Exact defaults are a v0.4 decision backed by tests and realistic workloads; unbounded recursion or unbounded error accumulation is not acceptable for untrusted input.
+The v0.4 JSON parser rejects malformed input safely and enforces configurable limits: 1 MiB input, nesting depth 128, 10,000 items per collection, and 100 returned issues by default. The issue limit applies to the result returned by `validate_json`; adapters can temporarily aggregate more issues before the final cap. Parser issues include a byte offset and 1-based line/column; model validation issues carry typed paths. Unbounded recursion and input growth are not accepted for untrusted input.

@@ -2,6 +2,7 @@ from .types import (
     Constraints,
     ExtraFields,
     InputValue,
+    JsonOptions,
     PrimitiveValue,
     TypejoModel,
     UnknownFieldPolicy,
@@ -21,3 +22,4 @@ from .validation import (
     validate_optional_field,
     validate_primitive_array,
 )
+from .json import parse_json, validate_json
