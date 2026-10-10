@@ -1,19 +1,19 @@
 # Parsing, serialization, and schema formats
 
-**Status:** proposed contract for v0.4, v0.5, and v0.7. No format support exists in the repository today.
+**Status:** JSON parsing and deserialization are implemented in v0.4. JSON serialization remains a v0.5 target and JSON Schema remains a v0.7 target.
 
 ## JSON parsing and model validation
 
-Keep two stages and error families distinct:
+The implemented API keeps two stages and error families distinct:
 
 1. **Syntax parsing** converts JSON text/bytes into JSON values. Invalid tokens, escapes, delimiters, encoding, or truncated input produce a parse error with a source location when available.
 2. **Schema validation/deserialization** converts a parsed JSON value to a requested Mojo type. Missing fields, wrong types, constraints, and unknown fields produce validation issues with typed model paths.
 
 A convenience API may compose these stages, but its error must retain the category and details of the failing stage. Safe entry points return errors instead of allowing malformed or untrusted input to terminate the application.
 
-JSON numbers need explicit handling: integer conversion must preserve range and reject fractions; floating-point conversion must document precision and non-finite behavior. JSON `null` follows the separate nullability rules in [core semantics](semantics.md).
+`parse_json(source, options)` returns an owned `InputValue` tree and `validate_json[T](source, options, unknown_fields)` composes parsing with the model adapter. Defaults in `JsonOptions` are a 1 MiB input limit, depth 128, 10,000 items per collection, and 100 returned issues. Numeric-string coercion is off by default. Duplicate object keys are rejected because the `InputValue` object representation uses unique field names. The issue cap applies to the final `validate_json` result, after adapters return.
 
-The audited Mojo 1.1.0 standard-library index does not list a JSON package. Typejo must choose between owning a small parser/serializer and depending on a standalone Mojo library. Before v0.4, record that decision with dependency, license, maintenance, ownership, and version-compatibility consequences. Typejo must not depend on Python or Miduct to satisfy the format contract.
+JSON integer conversion preserves the source number lexeme, rejects fractional values for integer fields, and checks destination range exactly. Float conversion uses Float64 parsing; values that overflow to non-finite numbers are rejected, and ordinary precision follows Float64. Optional coercion accepts JSON-number strings only for `Int` and `Float64`. JSON `null` follows the separate nullability rules in [core semantics](semantics.md). The parser is owned by Typejo and adds no runtime dependency; Mojo 1.1.0 did not provide a verified standard-library JSON API. Typejo does not depend on Python or Miduct.
 
 ## Serialization
 

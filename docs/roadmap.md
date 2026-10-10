@@ -38,13 +38,15 @@ Milestones are labeled by status. A milestone is complete only when its acceptan
 
 ## v0.4 — Parsing and Deserialization
 
+**Status: implemented and verified on Mojo 1.1.0.**
+
 **Deliver:** JSON text parsing; JSON-to-model validation; nested objects, arrays, and composite values; explicit coercion policy; strict and permissive modes; safe malformed-input errors.
 
 **Acceptance:** syntax errors are distinguishable from schema errors; malformed input is returned as an error and does not unexpectedly terminate the application; no coercion occurs unless selected; depth, input-size, and collection limits are enforced and documented.
 
 **Tests:** malformed JSON categories; valid and invalid nested payloads; coercion matrix; integer range and numeric precision boundaries; escaping and Unicode; size/depth limit boundaries; fuzzing of parser entry points where practical.
 
-**Feasibility gate:** the audited Mojo 1.1.0 standard-library index does not list a JSON package. Before this milestone, choose and document a Typejo-owned parser or an acceptable standalone Mojo dependency; do not assume a standard-library API exists.
+**Implementation:** Typejo owns a parser with no runtime dependency. `JsonOptions` defaults to 1 MiB input, depth 128, 10,000 collection items, and 100 returned issues. Numeric-string coercion is opt-in. Duplicate object keys are rejected because `InputValue` represents unique field names. `validate_json[T]` returns parse failures with byte offset and 1-based line/column; model issues retain typed paths. JSON number lexemes are retained internally so integer range/fraction checks do not depend on an imprecise floating-point intermediate. `max_issues` bounds the returned list after adapter validation.
 
 ## v0.5 — Serialization
 

@@ -22,7 +22,7 @@ Typejo is not an ORM, database driver, HTTP framework, package manager, or depen
 3. Optional transformations run only when configured and return a declared output type.
 4. A serializer maps a validated typed model to a format value tree and then to output text/bytes.
 
-The v0.2 `InputValue` tree is implemented and applications can build it directly. JSON text parsing remains a proposed adapter; the v0.4 feasibility decision must settle whether parsing is owned by Typejo or supplied by a standalone Mojo dependency.
+The v0.2 `InputValue` tree is implemented and applications can build it directly. v0.4 adds a Typejo-owned JSON parser that builds the same tree, preserving number lexemes for exact integer checks. `parse_json` exposes the parsed tree, while `validate_json[T]` composes parsing with the explicit model adapter and returns no model on failure.
 
 ## Model mapping decision
 
@@ -32,4 +32,4 @@ v0.3 is an ergonomics and feasibility milestone, not a promise of automatic deri
 
 ## Compatibility and status
 
-The v0.1 primitive and v0.2 composite APIs and tests are verified with Mojo 1.1.0. The repository has no package manifest or compatibility policy; automatic model derivation remains proposed. See [Mojo compatibility](mojo-compatibility.md) and the [roadmap](../roadmap.md).
+The v0.1 through v0.4 APIs and tests are verified with Mojo 1.1.0. The repository has no package manifest or compatibility policy; automatic model derivation remains unsupported. See [Mojo compatibility](mojo-compatibility.md) and the [roadmap](../roadmap.md).

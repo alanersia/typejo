@@ -19,5 +19,7 @@ jobs:
       - run: mojo --version
       - run: mojo -I . tests/test_primitives.mojo
       - run: mojo -I . tests/test_composites.mojo
+      - run: mojo -I . tests/test_json.mojo
       - run: mojo -I . examples/primitives.mojo
       - run: mojo -I . examples/models.mojo
+      - run: mojo -I . examples/json.mojo

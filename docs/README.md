@@ -4,7 +4,7 @@ Typejo is a standalone Mojo library for validating, parsing, and serializing str
 
 ## Current status
 
-v0.1 primitive validation and the v0.2 composite validation foundation are implemented and verified with Mojo 1.1.0. Composite inputs use a Typejo-owned `InputValue` tree and explicit `TypejoModel` adapters; JSON parsing and serialization remain planned. See the [implementation status and roadmap](roadmap.md).
+v0.1 primitive validation, v0.2 composite validation, v0.3 model ergonomics, and v0.4 JSON parsing/deserialization are implemented for Mojo 1.1.0. Models use explicit `TypejoModel` adapters; JSON serialization remains planned. See the [implementation status and roadmap](roadmap.md).
 
 ## Guides
 
@@ -18,6 +18,10 @@ v0.1 primitive validation and the v0.2 composite validation foundation are imple
 - [Miduct integration boundary](integrations/miduct.md)
 - [Testing, benchmarking, and release readiness](development/release-readiness.md)
 
+## Runnable examples
+
+Run from the repository root with `mojo -I .`: [primitive validation](../examples/primitives.mojo), [adapter-based models](../examples/models.mojo), and [JSON-to-model validation](../examples/json.mojo).
+
 ## Status vocabulary
 
 - **Implemented:** present in this repository and verified against its supported compiler.
@@ -25,4 +29,4 @@ v0.1 primitive validation and the v0.2 composite validation foundation are imple
 - **Planned:** assigned to a roadmap milestone but not implemented.
 - **Deferred:** intentionally outside the v1.0 target or gated on a technical feasibility review.
 
-The roadmap and API contract distinguish implemented v0.1/v0.2 behavior from later Typejo targets. Mojo language facts are labeled separately from Typejo design choices and link to the official Mojo 1.1.0 documentation where possible.
+The roadmap and API contract distinguish implemented v0.1 through v0.4 behavior from later Typejo targets. Mojo language facts are labeled separately from Typejo design choices and link to the official Mojo 1.1.0 documentation where possible.

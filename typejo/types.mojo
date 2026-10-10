@@ -30,26 +30,47 @@ struct InputNode(Copyable):
     var key: String
     var kind: Int
     var primitive: Optional[PrimitiveValue]
+    var json_number: Optional[String]
 
     def __init__(out self, parent: Int, key: String, kind: Int):
         self.parent = parent
         self.key = key
         self.kind = kind
         self.primitive = None
+        self.json_number = None
 
     def __init__(out self, parent: Int, key: String, primitive: PrimitiveValue):
         self.parent = parent
         self.key = key
         self.kind = INPUT_PRIMITIVE
         self.primitive = Optional[PrimitiveValue](primitive.copy())
+        self.json_number = None
 
 struct InputValue(Copyable):
     var nodes: List[InputNode]
+    var is_json: Bool
+    var coerce_numeric_strings: Bool
 
     def __init__(out self):
         self.nodes = List[InputNode]()
         var root = InputNode(-1, "", INPUT_OBJECT)
         self.nodes.append(root^)
+        self.is_json = False
+        self.coerce_numeric_strings = False
+
+    def __init__(out self, root_kind: Int):
+        self.nodes = List[InputNode]()
+        var root = InputNode(-1, "", root_kind)
+        self.nodes.append(root^)
+        self.is_json = True
+        self.coerce_numeric_strings = False
+
+    def __init__(out self, root_value: PrimitiveValue):
+        self.nodes = List[InputNode]()
+        var root = InputNode(-1, "", root_value)
+        self.nodes.append(root^)
+        self.is_json = True
+        self.coerce_numeric_strings = False
 
     def root(self) -> Int:
         return 0
@@ -58,7 +79,13 @@ struct InputValue(Copyable):
         return len(self.nodes)
 
     def is_well_formed(ref self) -> Bool:
-        if len(self.nodes) == 0 or self.nodes[0].parent != -1 or self.nodes[0].kind != INPUT_OBJECT:
+        if len(self.nodes) == 0 or self.nodes[0].parent != -1 or self.nodes[0].key != "":
+            return False
+        if self.nodes[0].kind < INPUT_NULL or self.nodes[0].kind > INPUT_ARRAY:
+            return False
+        if self.nodes[0].kind == INPUT_PRIMITIVE and not self.nodes[0].primitive:
+            return False
+        if self.nodes[0].kind != INPUT_PRIMITIVE and self.nodes[0].primitive:
             return False
         for index in range(1, len(self.nodes)):
             var parent = self.nodes[index].parent
@@ -102,6 +129,15 @@ struct InputValue(Copyable):
         var node = InputNode(parent, key, value)
         self.nodes.append(node^)
         return len(self.nodes) - 1
+
+    def add_json_number(mut self, parent: Int, key: String, value: PrimitiveValue, source: String) -> Int:
+        var node = InputNode(parent, key, value)
+        node.json_number = Optional[String](source)
+        self.nodes.append(node^)
+        return len(self.nodes) - 1
+
+    def add_json_number_item(mut self, parent: Int, value: PrimitiveValue, source: String) -> Int:
+        return self.add_json_number(parent, "", value, source)
 
     def add_object_item(mut self, parent: Int) -> Int:
         return self.add_object(parent, "")
@@ -148,6 +184,12 @@ struct InputValue(Copyable):
 
     def has_field(ref self, parent: Int, key: String) -> Bool:
         return self.find_field(parent, key).has_value()
+
+    def json_number(ref self, node: Int) -> Optional[String]:
+        return self.nodes[node].json_number.copy()
+
+    def permits_numeric_string_coercion(ref self) -> Bool:
+        return self.coerce_numeric_strings
 
 struct UnknownFieldPolicy:
     var mode: Int
@@ -198,12 +240,23 @@ struct ValidationIssue:
     var path: String
     var message: String
     var path_segments: List[ValidationPathSegment]
+    var source_offset: Int
+    var source_line: Int
+    var source_column: Int
 
     def __init__(out self, code: String, message: String):
         self.code = code
         self.path = ""
         self.message = message
         self.path_segments = List[ValidationPathSegment]()
+        self.source_offset = -1
+        self.source_line = -1
+        self.source_column = -1
+
+    def set_source_location(mut self, offset: Int, line: Int, column: Int):
+        self.source_offset = offset
+        self.source_line = line
+        self.source_column = column
 
     def add_field(mut self, field: String):
         if self.path:
@@ -330,6 +383,9 @@ struct ValidationResult[T: Copyable & Deinitable]:
                 self.result_issues[i].message.copy(),
             )
             issue.path = self.result_issues[i].path.copy()
+            issue.source_offset = self.result_issues[i].source_offset
+            issue.source_line = self.result_issues[i].source_line
+            issue.source_column = self.result_issues[i].source_column
             for segment_index in range(len(self.result_issues[i].path_segments)):
                 issue.path_segments.append(self.result_issues[i].path_segments[segment_index].copy())
             copies.append(issue^)
@@ -357,6 +413,22 @@ struct ValidationResult[T: Copyable & Deinitable]:
 
     def append_issues(mut self, var issues: List[ValidationIssue]):
         self.result_issues.extend(issues^)
+
+@fieldwise_init
+struct JsonOptions(Copyable):
+    var max_input_bytes: Int
+    var max_depth: Int
+    var max_collection_items: Int
+    var max_issues: Int
+    var coerce_numeric_strings: Bool
+
+    def __init__(out self):
+        self.max_input_bytes = 1_048_576
+        self.max_depth = 128
+        self.max_collection_items = 10_000
+        self.max_issues = 100
+        self.coerce_numeric_strings = False
+
 
 trait TypejoModel(Copyable, Deinitable):
     @staticmethod
