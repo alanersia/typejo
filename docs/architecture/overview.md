@@ -15,21 +15,21 @@ Typejo is not an ORM, database driver, HTTP framework, package manager, or depen
 - Use no Python runtime dependency.
 - Do not claim an API or feature is implemented until it exists and is checked against the supported compiler.
 
-## Proposed processing flow
+## Current and proposed processing flow
 
 1. A format adapter parses bytes/text into a format value tree. Syntax errors stay format errors.
 2. The validator checks types, presence, nullability, and constraints, producing either a typed model or validation issues.
 3. Optional transformations run only when configured and return a declared output type.
 4. A serializer maps a validated typed model to a format value tree and then to output text/bytes.
 
-The format value tree and parser are proposed components, not implemented code. The v0.4 feasibility decision must settle whether JSON parsing is owned by Typejo or supplied by a standalone Mojo dependency.
+The v0.2 `InputValue` tree is implemented and applications can build it directly. JSON text parsing remains a proposed adapter; the v0.4 feasibility decision must settle whether parsing is owned by Typejo or supplied by a standalone Mojo dependency.
 
 ## Model mapping decision
 
-The preferred target is one Mojo struct definition as the source of field types, with field constraints expressed as metadata or a reusable mapping that does not duplicate types. Mojo 1.1.0 has compile-time reflection APIs for struct field information, but the full workflow from metadata to safe field access, nested validation, and construction has not been demonstrated in this repository.
+The v0.2 path uses a `TypejoModel` adapter on each Mojo struct. The adapter reads fields from `InputValue`, calls reusable Typejo field/list/nested validators, and constructs the typed result. Mojo 1.1.0 compile-time reflection enumerates field names for default unknown-field rejection; typed field access and construction stay in the adapter.
 
-v0.3 is therefore a feasibility milestone, not a promise of automatic derive. If deriving is not viable, use a documented explicit model trait/adapter as the fallback. It must map each field once and delegate primitive/composite rules to reusable Typejo validators; it must not ask users to write a second full validator by hand.
+v0.3 is an ergonomics and feasibility milestone, not a promise of automatic derive. It can reduce adapter boilerplate only if the compiler supports safe field access and construction. The tested explicit adapter remains the working route.
 
 ## Compatibility and status
 
-The v0.1 primitive API and tests are verified with Mojo 1.1.0. The repository has no package manifest or compatibility policy, and model integration remains proposed. See [Mojo compatibility](mojo-compatibility.md) and the [roadmap](../roadmap.md).
+The v0.1 primitive and v0.2 composite APIs and tests are verified with Mojo 1.1.0. The repository has no package manifest or compatibility policy; automatic model derivation remains proposed. See [Mojo compatibility](mojo-compatibility.md) and the [roadmap](../roadmap.md).
